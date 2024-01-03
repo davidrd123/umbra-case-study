@@ -14,25 +14,34 @@ const { name, location, githubUrl, imageUrl, email, websiteUrl, linkedInUrl }: T
 
 import { Icon } from 'astro-icon/components'
 ---
+<style>
+  .team-member h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+</style>
 
-<li class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-  <a href={githubUrl} target="_blank">
-    <img src={imageUrl} alt={name} class="w-60 h-60 rounded-full mb-4"/>
-  </a>
-  <h3>{name}</h3>
-  <p>{location}</p>
-  <ul class="social-icons">
-    <li>
+<li class="team-member flex flex-col items-center justify-between p-4 bg-white rounded-lg shadow-md sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5">
+  <div class="flex flex-col items-center">
+    <a href={githubUrl} target="_blank">
+      <img src={imageUrl} alt={name} class="w-60 h-60 rounded-full mb-4"/>
+    </a>
+    <h3 class="mt-0 mb-2 leading-normal text-center">{name}</h3>
+    <p class="text-center">{location}</p>
+  </div>
+  <ul class="flex flex-row items-center justify-center space-x-4">
+    <!-- li shouldn't have bullets here -->
+    <li class="list-none">
       <a href={`mailto:${email}`} target="_blank">
         <Icon name="mdi:email" size={24}/>
       </a>
     </li>
-    <li>
+    <li class="list-none">
       <a href={websiteUrl} target="_blank">
         <Icon name="mdi:web" size={24}/>
       </a>
     </li>
-    <li>
+    <li class="list-none">
       <a href={linkedInUrl} target="_blank">
         <!-- <img src="./src/assets/icons/linked_in_icon.png" alt="linkedin" />
          -->
