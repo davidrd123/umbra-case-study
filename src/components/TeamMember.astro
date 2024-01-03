@@ -1,5 +1,5 @@
 ---
-// Define the props that the TeamMember component will accept
+
 export interface TeamMemberProps {
   name: string;
   location: string;
@@ -9,7 +9,7 @@ export interface TeamMemberProps {
   websiteUrl: string;
   linkedInUrl: string;
 }
-console.log(Astro.props);
+
 const { name, location, githubUrl, imageUrl, email, websiteUrl, linkedInUrl }: TeamMemberProps = Astro.props as TeamMemberProps;
 
 import { Icon } from 'astro-icon/components'
