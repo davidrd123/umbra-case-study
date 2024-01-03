@@ -1,0 +1,85 @@
+---
+title: 1. Introduction
+description: A brief introduction to the case study.
+---
+import { Picture } from "astro-imagetools/components";
+
+## 1.1 What is Umbra?
+
+Umbra is a browser-based code editing and evaluation tool for quickly and seamlessly collaborating on code in real time.
+
+Umbra makes it simple for remote collaborators to program together. The Umbra workflow setup consists of three steps:
+
+1. Navigate to the Umbra homepage,
+
+2. Copy the room URL and send it to teammate(s),
+
+3. Paste in some code, or start together from scratch.
+
+At this point, users have access within a single browser window to real-time collaborative editing, secure code evaluation, and support for multiple programming languages.
+
+With the optional creation of an Umbra account, users also gain the ability to save pieces of code in a personal library for later use. This provides a degree of convenience without necessitating the weight of a full browser-based IDE.
+
+![alt_text](/src/images/library-3.gif "Code Library Functionality")
+
+<p align="center"><em>Umbra’s code library functionality</em></p>
+
+---
+
+### 1.1.1 Use Cases
+
+For those learning to write code for the first time, or for seasoned developers learning a new programming language, it can help to share code with someone who has more experience with that language. Learning foundational programming concepts, or trying to understand the nuances of a new language's syntax, can be made easier and more effective with live mentorship and feedback.
+
+The ability to program in real time with other people—when multiple cursors and name labels provide “awareness” of what others are doing—is a more mentally stimulating and engaging experience than sharing code by copying and pasting. It is possible to get feedback by showing someone a static, un-runnable version of the code, but being able to let them edit it in tandem and view the evaluation results live is a more interactive, engaging, and social teaching-learning experience.
+
+{/* ![alt_text](./src/images/awareness.png "image_tooltip") */}
+<Picture src="./src/images/awareness.png" alt="image_tooltip" />
+
+In addition to being used as a code sharing, teaching, and learning tool, Umbra is also useful as
+
+a coding interview platform for smaller-scale companies as an immediate, no-fuss access to a collaborative coding environment.
+
+We designed Umbra to be as fast and pain-free as possible for users to share, teach, and learn by writing and evaluating snippets of code in pairs or small groups of collaborators, as if they were working together in the same room.
+
+---
+
+### 1.1.2 What Umbra is Not
+
+Umbra is a good option where users do want to edit and run code together in real time, but where a complete IDE experience is unnecessary. It does not provide features such as a terminal or a browser-based file system, so it is not suitable for collaboration on a full-fledged software project. Instead, it is ideal for spontaneously collaborating on individual files, functions, or specific pieces of code logic.
+
+The primary focus of Umbra is to make pair and group programming quick and convenient in situations where people may otherwise send each other non-runnable, non-editable code, or might unnecessarily opt for the full clout—and heftier setup procedures—of a collaborative IDE.
+
+{/* ![alt_text](./src/images/image23.png "image_tooltip") */}
+<Picture src="./src/images/image23.png" alt="image_tooltip" />
+
+<p align="center"><em>Sharing unrunnable ‘dead code’ snippets or using a full IDE to pair code aren’t always the best ways to collaborate for every situation.</em></p>
+
+---
+
+## 1.2 Comparing Umbra with Existing Solutions
+
+In our initial research, we were fascinated with real-time collaborative editing and the recent flourishing of engineering innovation in this domain. We envisioned a tool akin to Excalidraw or Google Docs, but for programming—including the ability to evaluate code and view the results directly in the browser.
+
+The existing solutions we found tend to fall into one of three categories:
+
+1. Some, like Glot.io or Val Town, feature the ability to send links to runnable code, but do not offer collaborative editing.
+2. Others, like GitHub Gists or Codeshare, offer an organized approach to code sharing and version control, but neither the ability to evaluate the code nor edit it collaboratively in real time.
+3. The third category consists of tools that enable real-time collaboration on runnable code; these tend to be more heavyweight IDEs. Such solutions, including VSCode Liveshare and Replit, are robust and dependable, but they come with certain impediments: the requirement of a user account, some amount of "boilerplate" setup, the assumption that all collaborators are using the same IDE locally, or a paywall.
+
+{/* ![alt_text](./src/images/image25.png "image_tooltip") */}
+<Picture src="./src/images/image25.png" alt="image_tooltip" />
+
+&nbsp;
+
+The factors in the last category are acceptable for use cases that require a set of IDE-like features. However, given the simplicity and spontaneity of the use case we're targeting, having so many setup considerations almost defeats the purpose. Because of this, there are still many situations in which both students and professionals find themselves copying and pasting code to each other, or screen-sharing, rather than using an online compiler or IDE.
+
+&nbsp;
+
+{/* ![alt_text](./src/images/image28.png "image_tooltip") */}
+<Picture src="./src/images/image28.png" alt="image_tooltip" />
+
+<p align="center"><em>Umbra as it relates to other web applications in this space</em></p>
+
+&nbsp;
+
+Umbra sits in the middle zone to facilitate use cases such as debugging a function, sharing approaches to refactoring a block of code, or helping someone prepare for a technical interview—any occasion that can benefit from real-time multiplayer editing and code evaluation, and where shared access to a larger IDE-like environment is less essential than being able to collaborate spontaneously.

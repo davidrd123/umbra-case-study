@@ -4,6 +4,8 @@ import tailwind from "@astrojs/tailwind";
 import icon from "astro-icon";
 
 import react from "@astrojs/react";
+import { astroImageTools } from "astro-imagetools";
+
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,7 +13,8 @@ export default defineConfig({
     title: 'Umbra',
 		customCss: [
 			// Path to your Tailwind base styles:
-			'./src/tailwind.css',
+			'./src/styles/tailwind.css',
+			'./src/styles/custom.css'
 		],
     social: {
       github: 'https://github.com/withastro/starlight'
@@ -28,13 +31,36 @@ export default defineConfig({
         label: 'Example Guide',
         link: '/guides/example/'
       }]
-    }, {
+    },
+		{
+			label: 'Case Study',
+			items: [
+				{
+					label: 'Introduction',
+					link: '/case-study/1_introduction'
+				},
+				{
+					label: 'Real-Time Collaboration',
+					link: '/case-study/2_real-time-collaboration'
+				},
+				{
+					label: 'Collaboration Implementation',
+					link: '/case-study/3_collab-implementation'
+				},
+				{
+					label: 'Executing User Code',
+					link: '/case-study/4_executing-user-code'
+				}
+			]
+		},
+		{
       label: 'Reference',
       autogenerate: {
         directory: 'reference'
       }
     }]
   }), 
+	astroImageTools,
 	tailwind({
 		// Disable the default base styles:
 		applyBaseStyles: false,

@@ -1,0 +1,247 @@
+---
+title: 3. Decisions/Implementation for Collaboration
+description: An overview of the decisions and implementation for real-time collaboration
+---
+import { Picture } from "astro-imagetools/components";
+
+## 3.1 Overview
+
+Our real-time collaboration implementation involved establishing persistent connections, integrating Conflict-Free Replicated Data Types (CRDTs) with our chosen code editor component, CodeMirror, and managing multiple WebSocket "rooms". Each "room" in this context represents a shared document that multiple users can edit simultaneously.
+
+We leveraged Yjs's `y-codemirror.next` module to handle undo/redo actions and cursor position awareness in a collaborative environment. The choice of WebSocket over WebRTC was made for its simplicity, reliability, and ease of data persistence.
+
+In the following sections, we will delve into the specific challenges we faced in building our real-time collaboration backend and the solutions we considered. We will also discuss our decision to use Y-Sweet, a suite of components that extends some of Yjs’ networking functionality, and adds additional features such as data persistence and deployment on Cloudflare's edge network.
+
+## 3.2 Protocol & Architecture
+
+When designing our collaborative code editor, we had to decide between two main technologies for real-time communication: WebRTC and WebSocket. Both provide protocols and APIs, each with their strengths and trade-offs.
+
+### 3.2.1 WebRTC
+
+WebRTC offers a peer-to-peer (P2P) protocol, where data is transmitted directly between users, and is primarily used over UDP for low latency. It's ideal for scenarios where users are geographically close, as it establishes direct connections, potentially reducing latency. However, its P2P approach introduces complexity in connection management, presents scalability issues due to quadratic growth of connections, and lacks built-in data persistence.
+
+{/* ![alt_text](./src/images/image24.png "image_tooltip") */}
+{/* <Picture src="./src/images/image24.png" alt="image_tooltip" /> */}
+<Picture src="./src/images/3_2_1_webrtc-simpl.png" alt="WebRTC" />
+<p align="center"><em>In a P2P architecture, every user is connected to every other one</em></p>
+
+### 3.2.2 WebSocket
+
+WebSocket provides a client-server communication protocol that works on top of TCP, and enables bidirectional communication between the client and the server. It's easier to set up and manage compared to WebRTC due to TCP-based operation and fewer NAT/firewall issues. It's also better suited for larger networks, as the number of connections grows linearly (as opposed to quadratically) with the number of peers. However, all data goes through a central server, which can increase server load and operational costs, potentially resulting in higher latency, and raising data privacy concerns.
+
+{/* ![alt_text](./src/images/image31.png "image_tooltip") */}
+{/* <Picture src="./src/images/image31.png" alt="image_tooltip" /> */}
+<Picture 
+  src="./src/images/3_2_2_websocket.png" 
+  alt="WebSocket" 
+  attributes={{
+    style: {
+      width: '18%',
+      maxWidth: '600px',
+      margin: '0 auto',
+    }
+  }}
+/>
+<p align="center"><em>In a WebSocket architecture, all users are connected to a central server</em></p>
+
+After weighing the benefits and trade-offs of both protocols, we decided to use WebSocket for our application. This decision was influenced by our need for scalability, simplicity in connection management, and data persistence. It should be noted that Yjs also allows “meshing” of providers—meaning that we could use both WebSocket and WebRTC providers simultaneously and Yjs would simply use the first update received. This could potentially allow us to gain the benefits of both approaches, but for simplicity we opted for just WebSocket.
+
+The backbone of our WebSocket implementation makes use of `y-websocket`, a Yjs module that wraps around the WebSocket protocol and integrates it with `y-protocols` to provide syncing and awareness utilities. We will delve deeper into this functionality in [3.4 Connection Providers](#heading=h.s0xh5f22yzdl). For the discussion that follows it should be noted that ultimately we chose to use an open source project (“Y-Sweet”) which extends `y-websocket,` which we will talk more about in section 3.5.
+
+## 3.3 Connection Providers
+
+**Note**: While we're discussing the functionality provided by y-websocket, it's important to remember that we're actually using Y-Sweet in our application. Y-Sweet extends y-websocket, so it includes all the features of y-websocket discussed here, in addition to its own unique features.
+
+In our application, we use `y-websocket` as our connection provider. It plays a crucial role in managing WebSocket connections, synchronizing the state of the shared document across all users in a room, and handling room management and user presence.
+
+In the context of our application, a "room" corresponds to a single `Y.Doc`. A `Y.Doc` is the top-level shared data type in Yjs, which contains all the shared data and state for a collaborative session. Each `Y.Doc` represents a shared document, and all users connected to a specific "room" are collaborating on the same shared document.
+
+{/* ![alt_text](./src/images/image18.png "image_tooltip") */}
+{/* <Picture src="./src/images/image18.png" alt="image_tooltip" /> */}
+<Picture src="./src/images/3_3_connection-providers.png" alt="Connection Providers" />
+
+<p align="center"> <em>Each room corresponds to a single Y.Doc</em></p>
+
+### 3.3.1 Provider (client)
+
+On the client side, `y-websocket` is responsible for establishing a WebSocket connection with the central server when a user joins a room. This connection encapsulates a shared document, represented as a `Y.Doc`.
+
+### 3.3.2 Backend Provider
+
+On the server side, `y-websocket` manages all active connections. It listens for changes in each `Y.Doc` and propagates these changes to all users in the corresponding room.
+
+`y-websocket` also integrates with `y-protocols` to provide syncing and awareness utilities:
+
+- The `sync` protocol ensures that all users have a synchronized view of the shared document. It listens for changes in each `Y.Doc` and propagates these changes to all users in the corresponding room.
+- Earlier we mentioned how `y-codemirror.next` integrates with CodeMirror to provide awareness updates. The next step is that the `awareness` protocol propagates the updates to all users in a room.
+
+### 3.3.3 Connection Lifecycle
+
+The lifecycle of a WebSocket connection begins when a user joins a room. `y-websocket` establishes a connection and sends the current state of the shared document to the user. If a user disconnects, `y-websocket` handles this event and ensures that any changes that occurred while they were disconnected are sent to them when they reconnect.
+
+{/* ![alt_text](./src/images/image5.png "image_tooltip") */}
+<Picture src="./src/images/image5.png" alt="Establishing a connection" />
+<figcaption align="center"><em>Establishing a connection</em></figcaption>
+
+{/* ![alt_text](./src/images/image27.png "image_tooltip") */}
+<Picture src="./src/images/image27.png" alt="Handling a disconnection" />
+<figcaption align="center"><em>Handling a disconnection</em></figcaption>
+
+### 3.3.4 Data Flow
+
+Data flows from one client to another through the WebSocket server and `y-websocket`. When a user makes a change to their `Y.Doc`, `y-websocket` propagates this change to all other users in the room. This ensures that all users always have a synchronized view of the shared document.
+
+{/* ![alt_text](./src/images/image19.png "image_tooltip") */}
+<Picture src="./src/images/image19.png" alt="Data Flow in y-websocket" />
+<figcaption align="center"><em>Data flow in a `y-websocket` architecture</em></figcaption>
+
+## 3.4 CodeMirror, Yjs, and React in Our Application
+
+In our React Single Page Application, we use CodeMirror for text editing. CodeMirror is a code editor component for the web that manages its own state independently of React. User inputs, such as keystrokes, are processed as transactions within CodeMirror. These transactions are then synchronized with Yjs via the `y-codemirror.next` module, enabling real-time collaborative editing.
+
+### 3.4.1 CodeMirror's State and View
+
+CodeMirror maintains its own internal state, which includes the content of the editor and cursor positions. User inputs, like keystrokes, are handled as transactions that update the `EditorState`. These transactions are then dispatched to the `EditorView`, which synchronizes its DOM representation with the new state, ensuring that the user interface accurately reflects the current state of the editor.
+
+{/* ![alt_text](./src/images/image6.png "image_tooltip") */}
+<Picture src="./src/images/image6.png" alt="CodeMirror Sync" />
+<figcaption align="center"><em>CodeMirror Sync with the DOM</em></figcaption>
+
+Say we had an initial document “abc” with the cursor after “c”, and then we typed the letter “d”. This DOM event would be received by the View, turned into the transaction `{changes: {from: 3, insert: "d"}`, and dispatched to create the new EditorState “abcd”, which the EditorView would then synchronize its DOM representation to display.
+
+{/* ![alt_text](./src/images/image12.png "image_tooltip") */}
+<Picture src="./src/images/image12.png" alt="CodeMirror Transaction Dispatch" />
+<figcaption align="center"><em>CodeMirror Transaction Dispatch</em></figcaption>
+
+---
+
+### 3.4.2 Interaction with Yjs
+
+The `y-codemirror.next` module binds Yjs's Conflict-free Replicated Data Type (CRDT) functionality with CodeMirror. There are two main components to this binding:
+
+- The module listens for (or “observes”, in Yjs-speak) transactions within the CodeMirror component, and translates them into Yjs updates. These updates are then propagated to all other users, ensuring that everyone has a synchronized view of the document.
+- The `y-codemirror.next` module also manages undo and redo actions so that they only affect the user who initiated them, rather than reverting or reapplying changes made by others. This supports a consistent and intuitive user experience.
+
+It sits between the state of the CM instance and the Y.Doc and keeps their state in sync - keystrokes which update the CM State by transactions as discussed are then translated into transactions which update the Y.Doc state. In the other direction, updates from other clients are received by Yjs and the CodeMirror state is synchronized
+
+### 3.4.3 Awareness
+
+Cursor positions and selections are also tracked in the `EditorState` and shared as awareness information through the `y-codemirror.next` module. Just as with document changes, `y-codemirror.next` also listens for changes in cursor positions and selections within the CodeMirror component. These changes are translated into awareness updates, which are then propagated to all other users, allowing everyone to see where others are working in real time.
+
+{/* ![alt_text](./src/images/image14.png "image_tooltip") */}
+<Picture src="./src/images/image14.png" alt="Awareness" />
+<figcaption align="center"><em>Awareness</em></figcaption>
+
+## 3.5 Our Decision to use Y-Sweet
+
+### 3.5.1 Challenges in Building a Real-Time Collaborative Application
+
+Building a real-time collaborative application presents several challenges, which extend beyond just managing WebSocket rooms: \
+
+- **Performance:** The application should handle high volumes of real-time updates with minimal latency.
+- **Connection Management: **The server must be able to manage numerous WebSocket connections, ensuring each client is directed to the correct room.
+- **Data Persistence**: Preserve document changes, even during network disruptions or server failure.
+- **Scalability**: Scale to accommodate increased user and document loads, while maintaining low latency for conflict resolution and efficient use of server resources.
+- **Integration with Frontend Technologies**: Seamlessly integrate with the frontend, aligning with React’s architecture and state management.
+
+### 3.5.2 Considered Solutions
+
+We considered several approaches to managing these challenges:
+
+1. **Building a custom solution**: This approach would involve developing our own WebSocket server and integrating it with Yjs. While this would give us full control over the application, it would also require significant development effort and expertise in real-time collaboration technologies. Extending `y-websocket` would also come with the responsibility of updating our solution as new versions of Yjs and `y-websocket` are released.
+2. **Leveraging orchestration platforms: **Platforms like Kubernetes and cloud-based solutions such as Amazon's Elastic Container Service (AWS ECS) can effectively handle the deployment and scaling of stateful applications, including WebSockets. However, they require careful orchestration to ensure all servers remain in sync, which adds complexity.
+3. **Using a managed third-party service**: Services like Firebase or AWS's AppSync could handle scalability for us and provide real-time collaboration features out of the box. However, they are not directly compatible with Yjs and would likely require significant custom development to integrate. Additionally, they might not provide the level of control we needed, and we had concerns about data privacy and the potential for vendor lock-in.
+4. **Deploying a pre-built open source solution (Y-Sweet)**:Y-Sweet is an open-source suite of tools specifically designed for building Yjs applications. It extends `y-websocket` and offers features like connection management, data synchronization, scalability, and persistence. Moreover, its server is designed to be deployed on a global edge network (Cloudflare's) for low latency, and is built on Yrs, a Rust port of Yjs, for increased performance.
+
+### 3.5.3 Our Decision: Y-Sweet
+
+Given our decision to work with Yjs and `y-websocket` and our concerns around scaling and latency, Y-Sweet emerged as a compelling toolkit which could give us end-to-end developer ergonomics like we might expect to find in a proprietary state-sync platform but without the lock-in, while addressing the challenges we enumerated in 3.5.1.
+
+#### **What is Y-Sweet?**
+
+Y-Sweet is a suite of open-source packages designed for developing and productionizing Yjs applications. It consists of three primary components.
+
+1. **Y-Sweet Server**: This standalone Yjs server extends `y-websocket` and uses the Rust port of Yjs, Yrs, to deploy as a WebAssembly module on Cloudflare's edge. This deployment strategy allows Y-Sweet to leverage Cloudflare's global network for low latency and high availability. The server also persists document state to AWS S3-compatible storage (either AWS S3 or Cloudflare R2), ensuring data persistence. It scales horizontally with a session backend model, providing robust scalability.
+2. **@y-sweet/sdk**: This TypeScript library facilitates interaction with the Y-Sweet server from our application. It provides functions to create and manage documents, authorize document access, and generate client tokens.
+3. **@y-sweet/react**: This React hooks library provides the Yjs Y.Doc and Awareness as context to the rest of our application. It simplifies the process of integrating Y-Sweet with our React application, helping us coordinate React state and effect hooks with the abstract CRDT-based data types provided by Yjs.
+
+By adopting Y-Sweet, we were able to address our key challenges around connection management, data synchronization, scalability, and persistence, while also ensuring seamless integration with our React application.
+
+#### **Evaluating Y-Sweet**
+
+Evaluating Y-Sweet along the dimensions that we enumerated as challenges in 3.5.1:
+
+- **Performance**: Y-Sweet leverages Rust and the y-crdt library to efficiently handle real-time updates. Notably, Rust, when compiled to WebAssembly (WASM), can achieve up to 5x faster performance compared to JavaScript.
+- **Connection Management**: Y-Sweet manages connections statefully, mapping each client to the correct collaborative session (or "room") via a Durable Object, a feature of Cloudflare for stateful serverless applications.
+- **Data Synchronization and Persistence**: Y-Sweet registers user changes, uses Yjs' Conflict-free Replicated Data Types (CRDTs) to resolve conflicts, and persists data to R2, ensuring users always see the latest document changes.
+- **Scalability**: By deploying on Cloudflare's global edge network, Y-Sweet ensures inherent scalability, low latency, and high availability. We will expand on this in the following section.
+- **Integration with Frontend**: The TypeScript SDK and React Hooks provided by Y-Sweet simplify the integration of Yjs with our React application.
+
+## 3.6 Y-Sweet and Cloudflare
+
+### 3.6.1 Introduction
+
+In the previous section, we discussed our decision to adopt Y-Sweet for our real-time collaboration service, highlighting its key features and benefits. Now let’s dive a bit deeper into the technical aspects of how Y-Sweet leverages Cloudflare's edge network and infrastructure to enable scalability and performance, as well as real-time collaboration. We will also discuss how we ensure data integrity and manage connections, and finally, we will consider some trade-offs related to our chosen approach.
+
+### 3.6.2 Leveraging Cloudflare's Edge Network
+
+Our application's scalability is underpinned by the use of Cloudflare's edge network, which includes Cloudflare Workers and Durable Objects.
+
+Cloudflare Workers enable serverless execution at the Cloudflare network's edge, which is within 50 milliseconds of 95% of the world's population. This proximity to users reduces network latency, allowing our application to respond quickly to user interactions.
+
+The problem with using Workers alone for real-time functionality is that Workers do not coordinate between requests. In other words, there's no way to guarantee that messages from the same WebSocket client will always get connected to the same Worker. This is where Durable Objects come into play. Durable Objects, like Workers, are instances of a particular piece of application functionality. However, unlike Workers or other traditional serverless functions, they have the ability to persist state in memory for the duration of a user session—even if a session involves multiple WebSocket connections from multiple users.
+
+### 3.6.3 How Umbra Clients, Workers, and Durable Objects Interact
+
+In the context of our application, a "room" refers to a collaborative space where multiple users can interact with the same document in real-time. Each room corresponds to a unique instance of a Durable Object, which maintains the state of the document and handles updates from all users in the room.
+
+The code for a Durable Object is essentially a JavaScript class; for illustrational purposes, it can help to think of Umbra's collaboration functionality as a class definition, complete with methods that define its interface.
+
+Each time an Umbra user opens up a new room, an instance of this class is created. (For convenience, when we say "Durable Object", we'll be referring to an individual instance, rather than the class itself.) This new Durable Object corresponds uniquely to that room. The Durable Object is deployed on the network edge close to the user.
+
+When this user invites collaborators to join, they each connect to a Worker close to them at the network edge. The Workers then route these users (via Cloudflare's network) to the already spun-up Durable Object. This guarantees that each request or connection associated with a particular room identifier is routed to the same room, and that updates to the document for that room are shared via the correct user connections. In this way, the Durable Object acts as an on-demand WebSocket server.
+
+{/* ![alt_text](./src/images/image11.png "image_tooltip") */}
+<Picture src="./src/images/image11.png" alt="Durable Objects" />
+<figcaption align="center"><em>Durable Objects provide persistent state for Cloudflare Workers</em></figcaption>
+
+### 3.6.4 Scaling and Performance
+
+In the simplest possible setup, a WebSocket server would be deployed in a single location, and would be responsible for managing multiple rooms. The rooms would be isolated from each other, but they would all still be running on the same machine.
+
+Now imagine that these rooms are still managed by the same server, but they now have the ability to "fly away" from the machine and "perch" on some other machine farther away. This is essentially what is happening in our setup. The "server" is the Durable Object class we mentioned before. Each room is run on a separate Durable Object instance deployed on Cloudflare’s edge network.
+
+This means that we can create rooms on-demand in any of hundreds of Cloudflare's data centers around the world, which satisfies our need for horizontal scalability in terms of the number of distinct rooms that can exist at a time.
+
+Moreover, Durable Objects improve application performance by maintaining the state of Y.Doc in memory. This allows for efficient handling of real-time updates, which is crucial for our real-time collaboration service. The initial connection between the client and WebSocket server is typically quite fast, since the Worker is created in the data center nearest to the user. After that, requests are routed through a Durable Object instance, which is also quite near to the first user who opened the room.
+
+### 3.6.5 Data Integrity
+
+#### **Coordination of Updates**
+
+Y-Sweet uses a Conflict-Free Replicated Data Type (CRDT) for its Y.Doc data structure. As discussed in the RTC section, CRDTs are data structures that can be replicated across multiple systems, and they resolve conflicts in a deterministic manner without requiring any coordination. This makes them ideal for real-time collaboration scenarios where multiple users might be updating the same document simultaneously. Specifically, CRDTs allow concurrent updates that eventually converge to a consistent state, ensuring that all users see a consistent view of the document.
+
+In the context of Y-Sweet and Cloudflare's Durable Objects, each room in the application corresponds to a Durable Object instance, which maintains an in-memory state of the Y.Doc for that room. When a user makes changes to the document, these changes are sent to the Durable Object, which updates its in-memory state and broadcasts the changes to all connected users. This ensures that all users always see a consistent state of the document.
+
+#### **Asynchronous Persistence to R2**
+
+While Durable Objects maintain an in-memory state of the Y.Doc, we also persist this state to durable storage to prevent data loss in case of failures. This is where Cloudflare's R2 storage comes into play. R2 is Cloudflare's distributed, eventually consistent object storage system. It's designed to be highly durable and available, and it's integrated with the rest of Cloudflare's global network.
+
+The state of the Y.Doc is periodically persisted to R2 in an asynchronous manner. This means that the operation of writing to R2 does not block the processing of incoming updates to the Y.Doc. This approach allows the system to continue processing updates without being blocked by I/O operations, which contributes to the system's overall performance and responsiveness.
+
+Durable Objects provide strong consistency for their in-memory state, meaning that after an update operation is completed, any subsequent access will return the value of that update. On the other hand, R2 storage is eventually consistent. This means that updates to the data may not be immediately visible to all users, but they will eventually reach a consistent state. However, since the in-memory state of the Durable Object is always up-to-date, users will always see a consistent state of the document, even if the state in R2 is slightly behind.
+
+In conclusion, the combination of Y-Sweet's CRDTs, Cloudflare's Durable Objects, and R2 storage provides a robust mechanism for ensuring data integrity in our real-time collaboration service.
+
+### 3.6.6 Tradeoffs and Scenarios
+
+While Y-Sweet and Cloudflare's infrastructure provide a powerful combination for scalability and real-time collaboration, there are tradeoffs that we considered in our decision-making process:
+
+- **Cost**: Cloudflare Workers and Durable Objects operate on a usage-based pricing model. As traffic increases, the costs can grow significantly, especially during unexpected spikes in user activity. Budgeting for these scenarios requires careful planning and monitoring.
+- **Complexity**: Y-Sweet abstracts the intricacies of state synchronization across multiple instances, simplifying our interaction with stateful Durable Objects. This allows our team to concentrate on developing Umbra's features.
+- **Vendor Lock-in**: The fact that the Y-Sweet server relies on being deployed to a Cloudflare Worker makes it more challenging to migrate to an alternative collaboration deployment if needed.
+- **Cold Starts**: While generally minimal, Cloudflare Workers can experience cold starts, particularly when scaling from zero. This can introduce slight delays in initiating new user sessions during periods of low traffic.
+
+### 3.6.7 Conclusion
+
+Our adoption of Y-Sweet and Cloudflare's technologies was a strategic choice to enhance our platform's scalability and user experience. While we benefit from these advantages, we remain aware of the associated tradeoffs, such as increased costs, so we are committed to an ongoing process of refinement, and ensuring our scaling strategy is not only aligned with our technical objectives but also remains cost-effective.
