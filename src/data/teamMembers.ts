@@ -24,7 +24,7 @@ export const teamMembers: TeamMemberProps[] = [
     name: 'Fred Durham',
     location: 'TX',
     githubUrl: 'https://github.com/Fred-209',
-    imageUrl: 'https://imagedelivery.net/4_FyqNFZwcAJEitHpCnTiA/3b94273a-c935-4342-ea4e-8f874efe7500/public',
+    imageUrl: 'https://imagedelivery.net/4_FyqNFZwcAJEitHpCnTiA/ec417a5a-8d81-4b4f-02cc-2c3dabf7f500/public',
     email: 'f.durham@protonmail.com',
     websiteUrl: 'https://fdurham.com/',
     linkedInUrl: 'https://www.linkedin.com/in/fdurham/',
