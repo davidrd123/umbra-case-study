@@ -1,4 +1,4 @@
-import { TeamMemberProps } from '../components/TeamMember.astro';
+import type { TeamMemberProps } from '../components/TeamMember.astro';
 
 export const teamMembers: TeamMemberProps[] = [
   {

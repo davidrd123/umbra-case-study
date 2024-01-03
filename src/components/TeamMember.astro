@@ -9,7 +9,8 @@ export interface TeamMemberProps {
   websiteUrl: string;
   linkedInUrl: string;
 }
-const { name, location, githubUrl, imageUrl, email, websiteUrl, linkedInUrl }: TeamMemberProps = Astro.props;
+console.log(Astro.props);
+const { name, location, githubUrl, imageUrl, email, websiteUrl, linkedInUrl }: TeamMemberProps = Astro.props as TeamMemberProps;
 
 import { Icon } from 'astro-icon/components'
 ---
@@ -23,19 +24,19 @@ import { Icon } from 'astro-icon/components'
   <ul class="social-icons">
     <li>
       <a href={`mailto:${email}`} target="_blank">
-        <Icon name="mdi:email" size="24"/>
+        <Icon name="mdi:email" size={24}/>
       </a>
     </li>
     <li>
       <a href={websiteUrl} target="_blank">
-        <Icon name="mdi:web" size="24"/>
+        <Icon name="mdi:web" size={24}/>
       </a>
     </li>
     <li>
       <a href={linkedInUrl} target="_blank">
         <!-- <img src="./src/assets/icons/linked_in_icon.png" alt="linkedin" />
          -->
-         <Icon name="mdi:linkedin" size="24"/>
+         <Icon name="mdi:linkedin" size={24}/>
       </a>
     </li>
   </ul>
