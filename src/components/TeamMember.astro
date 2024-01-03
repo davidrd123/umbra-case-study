@@ -1,0 +1,42 @@
+---
+// Define the props that the TeamMember component will accept
+export interface TeamMemberProps {
+  name: string;
+  location: string;
+  githubUrl: string;
+  imageUrl: string;
+  email: string;
+  websiteUrl: string;
+  linkedInUrl: string;
+}
+const { name, location, githubUrl, imageUrl, email, websiteUrl, linkedInUrl }: TeamMemberProps = Astro.props;
+
+import { Icon } from 'astro-icon/components'
+---
+
+<li class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+  <a href={githubUrl} target="_blank">
+    <img src={imageUrl} alt={name} class="w-60 h-60 rounded-full mb-4"/>
+  </a>
+  <h3>{name}</h3>
+  <p>{location}</p>
+  <ul class="social-icons">
+    <li>
+      <a href={`mailto:${email}`} target="_blank">
+        <Icon name="mdi:email" size="24"/>
+      </a>
+    </li>
+    <li>
+      <a href={websiteUrl} target="_blank">
+        <Icon name="mdi:web" size="24"/>
+      </a>
+    </li>
+    <li>
+      <a href={linkedInUrl} target="_blank">
+        <!-- <img src="./src/assets/icons/linked_in_icon.png" alt="linkedin" />
+         -->
+         <Icon name="mdi:linkedin" size="24"/>
+      </a>
+    </li>
+  </ul>
+</li>
