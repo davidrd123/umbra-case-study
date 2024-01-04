@@ -11,28 +11,22 @@ import { astroImageTools } from "astro-imagetools";
 export default defineConfig({
   integrations: [starlight({
     title: 'Umbra',
+		components: {
+			SocialIcons: './src/components/CustomSocialIcons.astro',
+		},
 		customCss: [
 			// Path to your Tailwind base styles:
 			'./src/styles/tailwind.css',
 			'./src/styles/custom.css'
 		],
     social: {
-      github: 'https://github.com/Umbra-Team/umbra'
+      github: 'https://github.com/Umbra-Team/umbra',
     },
     logo: {
       src: './src/assets/umbra-logo-transparent.png',
       alt: 'Umbra Logo'
     },
     sidebar: [
-		{
-      label: 'Guides',
-      items: [
-      // Each item here is one entry in the navigation menu.
-      {
-        label: 'Example Guide',
-        link: '/guides/example/'
-      }]
-    },
 		{
 			label: 'Case Study',
 			items: [
