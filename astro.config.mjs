@@ -65,12 +65,7 @@ export default defineConfig({
 				}
 			]
 		},
-		{
-      label: 'References',
-      autogenerate: {
-        directory: 'references'
-      }
-    }]
+		]
   }), 
 	astroImageTools,
 	tailwind({

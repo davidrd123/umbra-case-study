@@ -17,14 +17,25 @@ hero:
       target: _blank
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
 import TeamMember from '../../components/TeamMember.astro';
 import { teamMembers } from '../../data/teamMembers';
 import { ViewTransitions } from 'astro:transitions';
 
 <ViewTransitions />
 
-## Our Team
+## Watch Our Presentation
+
+<div style={{ marginBottom: '1rem' }}></div>
+
+<div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%', margin: 'auto' }}>
+  <iframe
+    src="https://www.youtube.com/embed/KTGpoGrwexM"
+    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+    allowFullScreen
+  ></iframe>
+</div>
+
+## Meet Our Team
 
 If you're interested in finding out more, please reach out!
 

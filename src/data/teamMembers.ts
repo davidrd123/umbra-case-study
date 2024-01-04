@@ -22,7 +22,7 @@ export const teamMembers: TeamMemberProps[] = [
   },
   {
     name: 'Fred Durham',
-    location: 'TX',
+    location: 'Amrarillo, TX',
     githubUrl: 'https://github.com/Fred-209',
     imageUrl: 'https://imagedelivery.net/4_FyqNFZwcAJEitHpCnTiA/ec417a5a-8d81-4b4f-02cc-2c3dabf7f500/public',
     email: 'f.durham@protonmail.com',
