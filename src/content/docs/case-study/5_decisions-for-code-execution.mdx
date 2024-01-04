@@ -3,6 +3,9 @@ title: 5. Decisions for Code Execution
 description: An overview of the decisions for executing user submitted code
 ---
 import { Picture } from "astro-imagetools/components";
+import { ViewTransitions } from 'astro:transitions';
+
+<ViewTransitions />
 
 Ultimately, we decided on server-side execution of user code. Having a server fully dedicated to properly sandboxing and executing code would give us greater security, in addition to allowing us to support more programming languages. Once we decided on this route, the next step was to choose between a number of possible options for server-side execution.
 

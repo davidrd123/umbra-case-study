@@ -1,0 +1,8 @@
+---
+import { ViewTransitions } from "astro:transitions";
+import DefaultPageFrame from '@astrojs/starlight/components/PageFrame.astro';
+---
+<DefaultPageFrame {...Astro.props}>
+  <ViewTransitions slot="head" />
+  <slot />
+</DefaultPageFrame>

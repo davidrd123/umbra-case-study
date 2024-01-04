@@ -3,6 +3,9 @@
 title: References
 description: Case Study References
 ---
+import { ViewTransitions } from 'astro:transitions';
+
+<ViewTransitions />
 
 
 ### WebSocket

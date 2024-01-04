@@ -3,6 +3,9 @@ title: 4. Executing User Submitted Code
 description: An overview of the decisions and implementation for executing user submitted code
 ---
 import { Picture } from "astro-imagetools/components";
+import { ViewTransitions } from 'astro:transitions';
+
+<ViewTransitions />
 
 Our goal in creating Umbra was to allow users not only to code collaboratively, but also to run their shared code and receive evaluated results back quickly. Deciding _where to execute this code_, and determining _how to execute it safely_, were two of our major considerations.
 
