@@ -54,7 +54,7 @@ The backbone of our WebSocket implementation makes use of `y-websocket`, a Yjs m
 ## 3.3 Connection Providers
 
 :::note
-While we're discussing the functionality provided by y-websocket, it's important to remember that we're actually using Y-Sweet in our application. Y-Sweet extends y-websocket, so it includes all the features of y-websocket discussed here, in addition to its own unique features.
+While we're discussing the functionality provided by `y-websocket`, it's important to remember that we're actually using Y-Sweet in our application. Y-Sweet extends `y-websocket`, so it includes all the features of `y-websocket` discussed here, in addition to its own unique features.
 
 :::
 
@@ -142,10 +142,10 @@ Cursor positions and selections are also tracked in the `EditorState` and shared
 
 ### 3.5.1 Challenges in Building a Real-Time Collaborative Application
 
-Building a real-time collaborative application presents several challenges, which extend beyond just managing WebSocket rooms: \
+Building a real-time collaborative application presents several challenges, which extend beyond just managing WebSocket rooms:
 
 - **Performance:** The application should handle high volumes of real-time updates with minimal latency.
-- **Connection Management: **The server must be able to manage numerous WebSocket connections, ensuring each client is directed to the correct room.
+- **Connection Management:** The server must be able to manage numerous WebSocket connections, ensuring each client is directed to the correct room.
 - **Data Persistence**: Preserve document changes, even during network disruptions or server failure.
 - **Scalability**: Scale to accommodate increased user and document loads, while maintaining low latency for conflict resolution and efficient use of server resources.
 - **Integration with Frontend Technologies**: Seamlessly integrate with the frontend, aligning with React’s architecture and state management.
@@ -155,13 +155,13 @@ Building a real-time collaborative application presents several challenges, whic
 We considered several approaches to managing these challenges:
 
 1. **Building a custom solution**: This approach would involve developing our own WebSocket server and integrating it with Yjs. While this would give us full control over the application, it would also require significant development effort and expertise in real-time collaboration technologies. Extending `y-websocket` would also come with the responsibility of updating our solution as new versions of Yjs and `y-websocket` are released.
-2. **Leveraging orchestration platforms: **Platforms like Kubernetes and cloud-based solutions such as Amazon's Elastic Container Service (AWS ECS) can effectively handle the deployment and scaling of stateful applications, including WebSockets. However, they require careful orchestration to ensure all servers remain in sync, which adds complexity.
+2. **Leveraging orchestration platforms:** Platforms like Kubernetes and cloud-based solutions such as Amazon's Elastic Container Service (AWS ECS) can effectively handle the deployment and scaling of stateful applications, including WebSockets. However, they require careful orchestration to ensure all servers remain in sync, which adds complexity.
 3. **Using a managed third-party service**: Services like Firebase or AWS's AppSync could handle scalability for us and provide real-time collaboration features out of the box. However, they are not directly compatible with Yjs and would likely require significant custom development to integrate. Additionally, they might not provide the level of control we needed, and we had concerns about data privacy and the potential for vendor lock-in.
 4. **Deploying a pre-built open source solution (Y-Sweet)**:Y-Sweet is an open-source suite of tools specifically designed for building Yjs applications. It extends `y-websocket` and offers features like connection management, data synchronization, scalability, and persistence. Moreover, its server is designed to be deployed on a global edge network (Cloudflare's) for low latency, and is built on Yrs, a Rust port of Yjs, for increased performance.
 
 ### 3.5.3 Our Decision: Y-Sweet
 
-Given our decision to work with Yjs and `y-websocket` and our concerns around scaling and latency, Y-Sweet emerged as a compelling toolkit which could give us end-to-end developer ergonomics like we might expect to find in a proprietary state-sync platform but without the lock-in, while addressing the challenges we enumerated in 3.5.1.
+Given our decision to work with Yjs and `y-websocket` and our concerns around scaling and latency, Y-Sweet emerged as a compelling toolkit which could give us end-to-end developer ergonomics like we might expect to find in a proprietary state-sync platform but without the lock-in, while addressing the challenges we enumerated in [3.5.1 Challenges](#351-challenges-in-building-a-real-time-collaborative-application).
 
 #### **What is Y-Sweet?**
 
@@ -175,7 +175,7 @@ By adopting Y-Sweet, we were able to address our key challenges around connectio
 
 #### **Evaluating Y-Sweet**
 
-Evaluating Y-Sweet along the dimensions that we enumerated as challenges in 3.5.1:
+Evaluating Y-Sweet along the dimensions that we enumerated as challenges in [3.5.1 Challenges](#351-challenges-in-building-a-real-time-collaborative-application):
 
 - **Performance**: Y-Sweet leverages Rust and the y-crdt library to efficiently handle real-time updates. Notably, Rust, when compiled to WebAssembly (WASM), can achieve up to 5x faster performance compared to JavaScript.
 - **Connection Management**: Y-Sweet manages connections statefully, mapping each client to the correct collaborative session (or "room") via a Durable Object, a feature of Cloudflare for stateful serverless applications.
