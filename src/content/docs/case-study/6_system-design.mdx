@@ -1,0 +1,91 @@
+---
+title: 6. System Design
+description: An overview of the decisions for executing user submitted code
+---
+import { Picture } from "astro-imagetools/components";
+
+In this section, we will put all the parts together and take a look at our finalized system design, outlining the considerations that led to various choices regarding architecture, hosting, and infrastructure.
+
+In designing Umbra's architecture, we prioritized separation of concerns and scalability; the major functional components are served from their own dedicated nodes. The overall result is a service-oriented architecture that is flexible and loosely coupled: we wanted to ensure that as the application evolves, we can make changes to a particular service’s code or hosting infrastructure with minimal consequences for the other services.
+
+{/* ![alt_text](./src/images/image3.png "Umbra's Deployment") */}
+<Picture src="./src/images/image3.png" alt="Umbra's Current Deployment infrastructure" />
+<figcaption align="center"><em>Umbra’s current deployment infrastructure</em></figcaption>
+
+## 6.1 Architecture and Hosting Overview
+
+In order to facilitate flexibility and ease of development, all of Umbra's (non-managed) services are containerized using Docker containers, and deployed automatically via GitHub Actions to their various hosting solutions.
+
+{/* ![alt_text](./src/images/image13.png "Deployment Process") */}
+<Picture src="./src/images/image13.png" alt="Deployment Process" />
+
+All of Umbra's non-managed services are currently deployed via AWS Lightsail, a cloud platform that is built on top of AWS Elastic Compute Cloud (EC2). AWS Lightsail streamlines some common tasks (such as deploying a container from Docker Hub) at the cost of decreased configurability.
+
+During the development process, we experimented with a few different deployment setups. For example, we currently have alternative deployments of a majority of Umbra's services on VPS instances (AWS EC2 and Digital Ocean droplets), which are less opinionated and more configurable. For now, though, Umbra's main deployment is on Lightsail.
+
+So far, the tradeoff of “less configurable” has not been a pain point. Instead, Lightsail has afforded us greater development efficiency by abstracting away concerns that we would otherwise handle manually, such as port mapping and SSL/TLS encryption. Additionally, Lightsail provides powerful and simple container deployment options, simplifying both manual and automatic container deployment.
+
+In the following sections, we will explore Umbra's service architecture in more detail.
+
+## 6.2 Umbra’s Services
+
+### 6.2.1 Web Server
+
+The hub of Umbra's backend services is the web server, which is responsible for routing and responding to HTTP requests to our website. For many requests, the web server will communicate with other services to develop an appropriate response to send back to the client. Here are the communication flows handled by our web server:
+
+{/* ![alt_text](./src/images/image8.png "Umbra Webserver") */}
+<Picture src="./src/images/image8.png" alt="Umbra Webserver" />
+
+#### **Code Execution**
+
+When a client wishes to run some code that they have written, the web server will send the code and its metadata along to the code execution service (our self-hosted Piston environment), which evaluates the code and sends back the results.
+
+{/* ![alt_text](./src/images/image7.png "Code Execution Flow") */}
+<Picture src="./src/images/image7.png" alt="Code Execution Flow" />
+<figcaption align="center"><em>Code Execution Flow</em></figcaption>
+
+#### **Code Library API**
+
+When a signed-in client sends Umbra a request to save a block of code to their Code Library, the web server uses Sequelize, an Object-Relational Mapping (ORM) library, to interact with our AWS RDS Postgres database. This interaction is facilitated through a REST API, which allows the server to fulfill the request by retrieving or saving code snippets as needed.
+
+#### **User Authentication**
+
+Another example of the web server's role as our backend hub is the case of user signup and user authentication. For these tasks the web server will communicate with our authentication service, Amazon Cognito.
+
+#### **Brokering WebSocket Connections with Y-Sweet**
+
+The web server also brokers the initial connection between users and our collaboration service. In order to keep track of multiple WebSocket connections and clients, Y-Sweet issues unique client authorization tokens, similar to the way cookies are sometimes used in web applications.
+The web server is one of our services that is containerized using Docker and deployed to AWS Lightsail via Github Actions.
+
+{/* ![alt_text](./src/images/y-sweet.png "Y-Sweet Flowchart") */}
+<Picture src="./src/images/y-sweet.png" alt="Y-Sweet Flowchart" />
+<figcaption align="center"><em>Y-Sweet Connection FLow</em></figcaption>
+
+### 6.2.2 Collaboration Service
+
+Umbra's collaboration service provides its real time collaboration capabilities. This server's primary responsibilities are scalably managing WebSocket connections, and broadcasting CRDT-based document data and awareness updates across all collaborating users.
+
+Umbra implements this functionality by configuring Y-Sweet collaboration services to run on as many Cloudflare Workers as needed by load. Workers are Cloudflare's Function-as-a-Service (FaaS) serverless execution resource, and Y-Sweet is designed to be hosted on this cloud offering. In order to save the document state of individual code editor pages, or “rooms”, there must be a way to persist data; for this, the Cloudflare Workers communicate with Cloudflare R2 for object storage.
+
+### 6.2.3 Code Execution Service
+
+For reasons of both security and scalability, code execution takes place on its own server. As described in [5.3 Current Deployment Choice: Piston](./5_decisions-for-code-execution#53-current-deployment-choice-piston), Umbra uses a general purpose, multi-language code execution engine called Piston that provides security and sandboxing features for running untrusted code.
+
+Like the web server, the code execution server is containerized using Docker and deployed to AWS Lightsail. Right now it is deployed as a single node, but down the line we would scale it horizontally in tandem with the expansion of Umbra’s user base. We will discuss our analysis of scaling needs and system load in [7.1 Scaling Up](./7_future-directions#71-scaling-up).
+
+### 6.2.4 User Authentication Service
+
+User sign up, authentication, and authorization is handled with an AWS resource called Cognito. Given our service-oriented architecture and emphasis on separation of concerns, we wanted a discrete backend service for signup and authentication.
+
+We chose to use AWS Cognito for two reasons:
+
+1. Umbra’s requirements for user signup and authentication are standard and relatively uncomplicated, so it made sense to use a vetted third-party service for this purpose instead of writing our own.
+2. As an AWS-managed service, Cognito takes care of automatic scaling and any persistence setup required for management of user information.
+
+### 6.2.5 Database
+
+Umbra's "code library" functionality allows authenticated users to save blocks of code by persisting them to a PostgreSQL database. We opted to use Amazon’s Relational Database Service (RDS) to handle management of the database server.
+
+While a NoSQL database could also have worked, Umbra uses a relational database to enforce a structured schema on a fairly simple relational dataset. The primary purpose of our database is to associate users with their saved code blocks. This schema structure is uncomplicated and unlikely to change, so we favored the schema-validation and ACID-compliance of a relational database over the flexibility of NoSQL.
+
+As a managed service, RDS offers a number of features that were desirable for Umbra, but which could have soaked up valuable developer hours to implement ourselves. Among these features are automatic database backups, streamlined database administration, and vertical scalability via instance resizing.

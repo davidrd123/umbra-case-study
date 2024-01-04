@@ -1,0 +1,23 @@
+---
+title: 7. Towards the Future
+description: An overview of the decisions for executing user submitted code
+---
+import { Picture } from "astro-imagetools/components";
+
+While we feel our current iteration of Umbra is feature-complete with an eye towards our original goals, and our deployment infrastructure is enough to handle our current and estimated near-future needs, there are always things that can be improved upon.
+
+## 7.1 Scaling Up
+
+As outlined in  [3.6.4 Scaling and Performance](./3_collab-implementation#364-scaling-and-performance), our horizontal scaling needs for collaboration are met by our deployment of Y-Sweet on a Cloudflare worker. We anticipated that this part of our infrastructure would be hit the hardest with traffic, as each user’s actions need to be reconciled with all other user’s actions within the same Y.Doc.
+
+Our code execution server is the next area of our infrastructure that could require scaling up if user demand were to exceed our current server’s ability to process simultaneous code execution requests.
+
+Currently, we have Piston set to handle 64 request processes concurrently. Each request has a maximum runtime of 3 seconds on the server, which means that within any 3 second period, we can handle up to 64 concurrent requests. Based on our current and anticipated usage of Umbra (~10-200 total concurrent users), this limit facilitates a great user experience with no noticeable impact to performance. \
+
+Should the code execution server need to be scaled up in the future, we are in a good position to do so. Our code execution server is isolated on its own node, which makes both vertical and horizontal scaling easier to accomplish. To horizontally scale, we would start by creating additional code execution nodes and employing a load balancer to route traffic between them.
+
+## 7.2 Expansion of Features
+
+- **Support For More Programming Languages:** We currently support 5 of the most popular languages that appeal to a broad number of users, but support for more languages would expand the breadth of Umbra’s usefulness to more people.
+- **Voice Chat:** Our product doesn’t have any way for users to communicate with each other except for text within the Umbra code editor. The voice communication sector has many offerings already that people are accustomed to using, so we felt this wasn’t an important feature to include in our initial deployment. However, this could eventually be an intuitive feature for Umbra, and we’ve briefly looked into WebRTC as a mechanism to help us accomplish it.
+- **Embeddability**: Given more time, we would be interested in making Umbra’s coding environment an embeddable component that could be used in websites and within other collaborative applications.

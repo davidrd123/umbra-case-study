@@ -1,0 +1,61 @@
+---
+title: 5. Decisions for Code Execution
+description: An overview of the decisions for executing user submitted code
+---
+import { Picture } from "astro-imagetools/components";
+
+Ultimately, we decided on server-side execution of user code. Having a server fully dedicated to properly sandboxing and executing code would give us greater security, in addition to allowing us to support more programming languages. Once we decided on this route, the next step was to choose between a number of possible options for server-side execution.
+
+## 5.1 Initial Code Execution Approach: Deno
+
+Deno is a JavaScript runtime that has gained popularity in recent years. In contrast to Node.js, by default Deno executes code in a sandbox that limits access to the underlying file system, the network, and environment variables. If the code requires access to any of these resources, then access needs to be explicitly granted at runtime. Deno also supports TypeScript out of the box.
+
+### 5.1.1 Sandboxed Child Processes for Running Code
+
+For these reasons, Deno was a good initial choice for our code execution server. The way we set this up it was to have a designated server running a Deno process, and spawn child Deno processes from it. (A child process is a separate process that's created by the “parent” process for the purpose of performing a specific task, and it runs independently with its own copy of the parent's memory space.)
+
+While this setup served us well initially, when we decided to expand Umbra to support languages besides JavaScript and TypeScript, we looked to alternatives. Our choice needed to have the same or greater sandboxing security that Deno provides, while also allowing us to expand our language offerings.
+
+## 5.2 Exploring Alternatives
+
+We researched various products that are specifically tailored to executing code in a safe environment. For example, Sphere Engine provides a closed-source commercial API that accepts code from a vast number of programming languages, executes it safely, and sends back the evaluated result. However, we wanted the ability to host the code execution engine on our own infrastructure, so we moved on to open-source options.
+
+Judge0 is a popular open-source code execution system. It supports over 60 programming languages, and allows self-hosting. Beyond just code execution, Judge0 also provides mechanisms for testing code against expected results, and for this reason it is a good fit when "grading" code submissions is a priority, such as in online exams or programming contests. While the sandboxed security and expansive language choices were compelling, we decided it was overly resource-intensive for what we needed due to the additional grading functionality.
+
+## 5.3 Current Deployment Choice: Piston
+
+{/* ![alt_text](./src/images/piston.png "Piston") */}
+<Picture src="./src/images/piston.png" alt="Piston" />
+
+
+While looking at the various possibilities, we thought about what we would want in a code execution engine of our own making. In addition to sandboxing, we wanted more fine-grained control over the capabilities and permissions afforded to the untrusted code we were evaluating.
+
+Researching with these considerations in mind led us to Piston, an open-source solution whose makers describe it as a "high performance general purpose code execution engine" with security measures built in. Piston is distributed as a Docker image, and uses containers as its principal method for sandboxing code. Beyond containerization, Piston also provides several additional security measures.
+
+### 5.3.1 The Piston API
+
+Within Piston's Docker container, there is a Node API that accepts code execution requests and carries them out safely within the confines of the container. To do this, the API saves the source code to a file in a temporary directory, then compiles/executes the file.
+
+The Piston API also allows the calling client to prescribe limitations on the maximum running time, compile time, and amount of memory used by any single code execution process. This provides a good amount of assurance against resource saturation.
+
+---
+
+### 5.3.2 An Eye Towards Security
+
+Under the hood, Piston takes additional steps to reduce the risk of several common security threats:
+
+- **Privilege escalation**: Code is only run by a variety of unprivileged system users, meaning the code cannot escalate its own privileges and gain unauthorized system access.
+- **Fork bombs and file-based attacks**: The maximum number of subprocesses is limited to 256, and the maximum number of files written by a process is capped at 2048.
+- **Disk space attacks**: All temporary disk space is cleaned up after each execution.
+- **Runaway output**: The maximum number of characters allowed for `stdout` is 65536 per process.
+- **Unauthorized data transmission**: Piston disables all outgoing network interaction by default.
+
+Code executions that surpass any of these limits are stopped with a `SIGKILL` signal to quickly end the process and prevent any further issues.
+
+---
+
+### 5.3.3 The Shoulders of Giants
+
+Writing our own code execution engine was something we had also considered doing. However, we decided to use Piston because we saw convincing evidence of prolonged efforts that have already been made towards securing it. Besides its creator, Piston has numerous other contributors, and maintains an open invitation for new penetration tests. We felt confident choosing it as the product of a concerted collaborative effort to find and eliminate code execution vulnerabilities.
+
+---

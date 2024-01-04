@@ -50,13 +50,29 @@ export default defineConfig({
 				{
 					label: 'Executing User Code',
 					link: '/case-study/4_executing-user-code'
+				},
+				{
+					label: "Decisions for Code Execution",
+					link: '/case-study/5_decisions-for-code-execution'
+				},
+				{
+					label: 'System Design',
+					link: '/case-study/6_system-design'
+				},
+				{
+					label: 'Future Work',
+					link: '/case-study/7_future-directions'
+				},
+				{
+					label: 'References',
+					link: '/case-study/8_references'
 				}
 			]
 		},
 		{
-      label: 'Reference',
+      label: 'References',
       autogenerate: {
-        directory: 'reference'
+        directory: 'references'
       }
     }]
   }), 
