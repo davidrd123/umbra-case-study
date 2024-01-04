@@ -23,7 +23,8 @@ export default defineConfig({
       src: './src/assets/umbra-logo-transparent.png',
       alt: 'Umbra Logo'
     },
-    sidebar: [{
+    sidebar: [
+		{
       label: 'Guides',
       items: [
       // Each item here is one entry in the navigation menu.
