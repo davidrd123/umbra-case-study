@@ -29,7 +29,9 @@ In a **real-time collaborative editing** application, the goal is to mimic the e
 
 {/* <!-- ![alt_text](./src/images/awareness-demo.gif "Awareness Demo")  --> */}
 
-<Picture src="./src/images/awareness-demo.gif" alt="Awareness Demo" />
+{/* <Picture src="./src/images/awareness-demo.gif" alt="Awareness Demo" /> */}
+
+<img src="https://cdn.discordapp.com/attachments/1191997540216864818/1192202376866693192/awareness-demo.gif?ex=65a837fc&is=6595c2fc&hm=9d8e43d3400b9efd74f57657979f1228f7e3770acca9c1473c757d848226e49c&" alt="Awareness Demo" />
 
 <p align="center"><em>Two users working in the same document at the same time</em></p>
 
@@ -42,8 +44,6 @@ A collaborative editing application is a kind of _distributed system_, where the
 Since users are free to make changes to their copy at any time, temporary inconsistencies between these copies are inevitable. The keyword is _temporary_, though; in order to create a robust real-time collaborative application, we need a way to ensure that all user copies will _eventually converge_ to the same state.
 
 <Picture src="./src/images/image26.png" alt="image_tooltip" />
-
-&nbsp;
 
 We came across two industry standards for implementing eventual consistency in collaborative editing: **operational transformation (OT)** and **conflict-free replicated data types (CRDTs)**. Both are used in industry-scale collaborative editing applications. However, we chose to proceed with CRDTs for a few key reasons:
 
