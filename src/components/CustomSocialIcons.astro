@@ -2,15 +2,56 @@
 // src/components/CustomSocialIcons.astro
 import type { Props } from '@astrojs/starlight/props';
 import { Icon } from 'astro-icon/components'
+const Picture: any = (await import('astro-imagetools/components')).Picture;
 ---
+
+<style>
+  nav {
+    display: flex;
+    align-items: center; /* This ensures vertical alignment */
+    justify-content: space-around; /* Adjust as needed for your layout */
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px; /* Ensuring the anchor tag has the same height as icons */
+  }
+
+  nav a Picture {
+    display: block; /* Remove any default inline behavior */
+    margin: 0 auto; /* Center the image if it's smaller than the anchor */
+  }
+</style>
+
 
 <nav>
   <!-- Add your custom social links here -->
   <a href="https://github.com/Umbra-Team/umbra" aria-label="GitHub">
-    <Icon name="mdi:github" size={24} />
+    <!-- <Icon name="mdi:github" size={24} /> -->
+    <Picture 
+      src='./src/assets/github.png' 
+      alt="GitHub Logo" 
+      width={24} 
+      height={24}
   </a>
   <a href="https://youtu.be/KTGpoGrwexM" aria-label="YouTube">
-    <Icon name="mdi:youtube" size={24}/>
+    <Picture 
+      src='./src/assets/youtube.png' 
+      alt="YouTube Logo" 
+      width={24} 
+      height={24} 
+    />
+    <!-- <Icon name="mdi:youtube" size={24} /> -->
+  </a>
+  <a href="https://www.umbra-collab.com/" aria-label="Website">
+    <Picture 
+      src="./src/assets/umbra-logo-transparent-64x64.png" 
+      alt="Umbra Logo" 
+      width={24} 
+      height={24} 
+    />
   </a>
   <!-- Add more icons as needed -->
 </nav>

@@ -15,7 +15,7 @@ As outlined in  [3.6.4 Scaling and Performance](./3_collab-implementation#364-sc
 
 Our code execution server is the next area of our infrastructure that could require scaling up if user demand were to exceed our current server’s ability to process simultaneous code execution requests.
 
-Currently, we have Piston set to handle 64 request processes concurrently. Each request has a maximum runtime of 3 seconds on the server, which means that within any 3 second period, we can handle up to 64 concurrent requests. Based on our current and anticipated usage of Umbra (~10-200 total concurrent users), this limit facilitates a great user experience with no noticeable impact to performance. \
+Currently, we have Piston set to handle 64 request processes concurrently. Each request has a maximum runtime of 3 seconds on the server, which means that within any 3 second period, we can handle up to 64 concurrent requests. Based on our current and anticipated usage of Umbra (~10-200 total concurrent users), this limit facilitates a great user experience with no noticeable impact to performance.
 
 Should the code execution server need to be scaled up in the future, we are in a good position to do so. Our code execution server is isolated on its own node, which makes both vertical and horizontal scaling easier to accomplish. To horizontally scale, we would start by creating additional code execution nodes and employing a load balancer to route traffic between them.
 

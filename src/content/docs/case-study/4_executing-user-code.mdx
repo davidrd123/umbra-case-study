@@ -9,17 +9,13 @@ import { ViewTransitions } from 'astro:transitions';
 
 Our goal in creating Umbra was to allow users not only to code collaboratively, but also to run their shared code and receive evaluated results back quickly. Deciding _where to execute this code_, and determining _how to execute it safely_, were two of our major considerations.
 
----
-
 ## 4.1 Client Side or Server Side Execution?
 
 There are two broad options we considered when deciding where to evaluate the code submitted by users: in their own browser (client-side), or sent off somewhere else to be evaluated (server-side).
 
-Either way, we knew we would need to \_sandbox_the code execution environment. Sandboxing isolates external or untrusted code inside a restricted virtual environment, controlling its access to system resources. This prevents the code from accessing or even being aware of the underlying host system.
+Either way, we knew we would need to _sandbox_ the code execution environment. Sandboxing isolates external or untrusted code inside a restricted virtual environment, controlling its access to system resources. This prevents the code from accessing or even being aware of the underlying host system.
 
 For instance, consider a JavaScript sandbox in a web browser
-
----
 
 ### 4.1.1 Client Side Evaluation
 
@@ -46,8 +42,6 @@ A web browser would only be able to evaluate JavaScript, and we were interested 
 
 Using client-side execution means putting more load on our users’ systems. It also reduces our ability to observe and control the execution performance; in the case that client side processing is slow, it will cause a lag for other connected users.
 
----
-
 ### 4.1.2 Server Side Evaluation
 
 An alternative to executing code in the user's browser is to evaluate the code on a remote server instead. This could be done on the same server hosting the Umbra web app, a separate server of our own set up specifically for evaluating users’ code, or a third party code evaluation service.
@@ -73,13 +67,9 @@ In the case of code being executed on the client machine, the code never has to 
 
 Ultimately, we decided on server-side execution. While either approach could work, having a server fully dedicated to properly sandboxing and executing code would help us create a better user experience by limiting the reach of destructive code, in addition to allowing us to support more programming languages.
 
----
-
 ## 4.2 Safely Executing Untrusted Code
 
 The security issues involved with evaluating untrusted code are the focus of a vast amount of research and engineering. No method is ever 100% safe against attack, because attackers are always coming up with new ways to exploit previously unknown vulnerabilities in a system. For our purposes with Umbra, the focus was to reduce the space of vulnerability as much as possible, while weighing the tradeoffs of doing so.
-
----
 
 ### 4.2.1 What problems can arise from running untrusted code on a server?
 
@@ -92,8 +82,6 @@ Destructive code can originate from malicious actors, or from well-intentioned b
 
 In summary, allowing untrusted code to be executed on a machine means giving a stranger access to that machine. Proper safeguards need to be put in place to eliminate or minimize the ways in which the system could be compromised.
 
----
-
 ### 4.2.2 Sandboxing User Submitted Code
 
 Despite the risks, executing untrusted code is a common occurrence. For example, it is a crucial business consideration for websites such as Coderpad, Leetcode, and CodeWars to protect their servers from potentially destructive user code. There are ways to minimize the potential for attack, and to ensure that the untrusted code can do zero or minimal damage to the underlying host system.
@@ -103,10 +91,7 @@ Despite the risks, executing untrusted code is a common occurrence. For example,
 
 <p align="center"><em><a href="https://behradtaher.dev/2022/06/11/Sandboxing-Code-Execution/">https://behradtaher.dev/2022/06/11/Sandboxing-Code-Execution/</a></em></p>
 
-\
 One common method that we mentioned earlier is _code sandboxing_. There is more than one way to sandbox code, and different methods can keep the code more isolated than others, but all share the same goal of reducing the amount of harm untrusted code can do. Two approaches we considered using are virtual machines and containers.
-
-&nbsp;
 
 #### Virtual Machines
 
@@ -117,13 +102,9 @@ A virtual machine (VM) is essentially an entire computer system, with virtualize
 
 <p align="center"><em>Source: www.atlassian.com</em></p>
 
-&nbsp;
-
 Safeguards are still necessary to prevent access to network resources and the internet, but VMs alone are already a pretty secure way to isolate code. Exploits have been found where users can escape their VM sandbox and access the underlying host, but these exploits are generally found and patched very quickly.
 
 Because a VM has to emulate both the hardware of a system and its OS, it does involve more overhead to load and run than some other sandboxing methods.
-
-&nbsp;
 
 #### Containers
 

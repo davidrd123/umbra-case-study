@@ -11,6 +11,7 @@ import { astroImageTools } from "astro-imagetools";
 export default defineConfig({
   integrations: [starlight({
     title: 'Umbra',
+		favicon: './favicon.ico',
 		components: {
 			SocialIcons: './src/components/CustomSocialIcons.astro',
 		},
